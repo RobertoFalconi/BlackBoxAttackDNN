@@ -6,6 +6,7 @@ from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 #STEP 2 - Architecture selection
+# Here all the DNN architecture is created
 def model(x, logits=False, training=False):
     with tf.variable_scope('conv0'):
         z = tf.layers.conv2d(x, filters=32, kernel_size=[2, 2], padding='same', activation=tf.nn.relu)
@@ -45,10 +46,10 @@ def fgm(model, x, eps=0.01, epochs=1, sign=True, clip_min=0, clip_max=1):
         xadv = tf.stop_gradient(xadv + eps*noise_fn(dy_dx))
         xadv = tf.clip_by_value(xadv, clip_min, clip_max)
         return xadv, i+1
-    #STEP 3 - Labeling
     xadv, _ = tf.while_loop(cond, body, (xadv, 0), back_prop=False, name='fast_gradient')
     return xadv
 
+# CLASS ENVIRONMENT DEFINITION, BEFORE RUNNING MAIN
 class Environment():
 	pass
 
@@ -57,6 +58,7 @@ ambiente = Environment()
 with tf.variable_scope('model'):
     ambiente.x = tf.placeholder(tf.float32, (None, 28, 28, 1))
     ambiente.y = tf.placeholder(tf.float32, (None, 10), name='y')
+# calls model (STEP 2)
     ambiente.ybar, logits = model(ambiente.x, logits=True)
     with tf.variable_scope('acc'):
         count = tf.equal(tf.argmax(ambiente.y, axis=1), tf.argmax(ambiente.ybar, axis=1))
@@ -111,7 +113,7 @@ def evaluate(sess, ambiente, X_test, Y_test, batch=128):
 	print('acc: {0:.3f} loss: {1:.3f}'.format(totalAcc, totalLoss))
 	return totalAcc, totalLoss
 
-#STEP 5 - Dataset Augmentation
+
 def perform_fgsm(sess, ambiente, X_data, epochs=1, eps=0.01, batch_size=128):
     print('\nInizio FGSM')
     n_sample = X_data.shape[0]
@@ -131,23 +133,29 @@ def perform_fgsm(sess, ambiente, X_data, epochs=1, eps=0.01, batch_size=128):
 
 
 def main():
-    #STEP 1 - Initial Dataset Collection
+#STEP 1 - Initial Dataset Collection 
     old_v = tf.logging.get_verbosity()
     tf.logging.set_verbosity(tf.logging.ERROR)
-    mnist = mnist_data.read_data_sets("data", one_hot=True, reshape=False, validation_size=0)
+# read images from dataset
+    mnist = mnist_data.read_data_sets("data", one_hot=True, reshape=False, validation_size=0) 
     X_train = mnist.train.images
     y_train = mnist.train.labels
     X_test = mnist.test.images
     y_test = mnist.test.labels 
     tf.logging.set_verbosity(old_v)
+# 90% of dataset is training set, 10% is validation set
     i = int(X_train.shape[0] * 0.9)
     X_validate = X_train[i:]
     X_train = X_train[:i]
     y_validate = y_train[i:]
     y_train = y_train[:i]
-    sess = tf.InteractiveSession()
+# start tensorflow session
+# runs STEP 2
+    sess = tf.InteractiveSession() # ENVIRONMENT -> MODEL -> FGM
     sess.run(tf.global_variables_initializer())
     sess.run(tf.local_variables_initializer())
+# runs training and evaluating
+# STEP 4
     training(sess, ambiente, X_train, y_train, X_validate, y_validate, shuffle=False, batch=128, epochs=5)
     evaluate(sess, ambiente, X_test, y_test)
     X_adv = perform_fgsm(sess, ambiente, X_test, eps=0.02, epochs=12)
@@ -155,3 +163,20 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# MAIN:
+# STEP 1
+# DATASET COLLECTION
+# STEP 2
+# INTERACTIVE SESSION -> ENVIRONMENT:
+# MODEL
+# FGM (ADVERSARIAL MODEL)
+# STEP 3
+# LABELING 
+# STEP 4
+# TRAINING 
+# EVALUATE
+# PERFORM_FGSM
+# EVALUATE
+# STEP 5
+# AUGMENTATION
