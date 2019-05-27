@@ -6,7 +6,7 @@ from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 CLASSES = 10
 
-#STEP 2 - Substitute DNN Architecture Selection
+#STEP 2 - Architecture Selection
 def model(x, logits=False, training=False):
     with tf.variable_scope('conv0'):
         z = tf.layers.conv2d(x, filters=32, kernel_size=[2, 2], padding='same', activation=tf.nn.relu)
@@ -68,6 +68,7 @@ def _jsma_impl(model, x, yind, epochs, eps, clip_min, clip_max, score_fn):
 class Environment():
     pass
 
+# CLASS ENVIRONMENT DEFINITION, BEFORE RUNNING MAIN
 ambiente =  Environment()
 
 with tf.variable_scope('model'):
@@ -153,16 +154,19 @@ def make_jsma(sess, ambiente, X_data, epochs=0.2, eps=1.0, batch_size=128):
     print()
     return X_adv
 
-#STEP 1 - Substitute Training Dataset Collection
+
 def main():
+#STEP 1 - Substitute Training Dataset Collection
     old_v = tf.logging.get_verbosity()
     tf.logging.set_verbosity(tf.logging.ERROR)
+# read images from dataset
     mnist = mnist_data.read_data_sets("MNIST_data", one_hot=True, reshape=False, validation_size=0)
     X_train = mnist.train.images
     y_train = mnist.train.labels
     X_test = mnist.test.images
     y_test = mnist.test.labels
     tf.logging.set_verbosity(old_v)
+# 90% of dataset is training set, 10% is validation set
     ind = np.random.permutation(X_train.shape[0])
     X_train, y_train = X_train[ind], y_train[ind]
     factor = int(X_train.shape[0] * 0.9)
@@ -170,10 +174,14 @@ def main():
     X_train = X_train[:factor]
     y_valid = y_train[factor:]
     y_train = y_train[:factor]
+# start tensorflow session
+# runs STEP 2
     print('\nInizializzazione grafo')
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
     sess.run(tf.local_variables_initializer())
+# runs training and evaluating
+# STEP 4
     train(sess, ambiente, X_train, y_train, X_valid, y_valid, epochs=2)
     print('\nValutazione su dati nuovi')
     evaluate(sess, ambiente, X_test, y_test)
@@ -184,3 +192,20 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# MAIN:
+# STEP 1
+# DATASET COLLECTION
+# STEP 2
+# INTERACTIVE SESSION -> ENVIRONMENT:
+# MODEL
+# FGM (ADVERSARIAL MODEL)
+# STEP 3
+# LABELING 
+# STEP 4
+# TRAINING 
+# EVALUATE
+# PERFORM_FGSM
+# EVALUATE
+# STEP 5
+# AUGMENTATION
