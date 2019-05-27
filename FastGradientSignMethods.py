@@ -45,7 +45,7 @@ def fgm(model, x, eps=0.01, epochs=1, sign=True, clip_min=0, clip_max=1):
         xadv = tf.stop_gradient(xadv + eps*noise_fn(dy_dx))
         xadv = tf.clip_by_value(xadv, clip_min, clip_max)
         return xadv, i+1
-    #STEP 3 - Label
+    #STEP 3 - Labeling
     xadv, _ = tf.while_loop(cond, body, (xadv, 0), back_prop=False, name='fast_gradient')
     return xadv
 
@@ -111,7 +111,7 @@ def evaluate(sess, ambiente, X_test, Y_test, batch=128):
 	print('acc: {0:.3f} loss: {1:.3f}'.format(totalAcc, totalLoss))
 	return totalAcc, totalLoss
 
-#STEP 5 - Augmentation
+#STEP 5 - Dataset Augmentation
 def perform_fgsm(sess, ambiente, X_data, epochs=1, eps=0.01, batch_size=128):
     print('\nInizio FGSM')
     n_sample = X_data.shape[0]
@@ -131,7 +131,7 @@ def perform_fgsm(sess, ambiente, X_data, epochs=1, eps=0.01, batch_size=128):
 
 
 def main():
-    #STEP 1 - Initial Collection
+    #STEP 1 - Initial Dataset Collection
     old_v = tf.logging.get_verbosity()
     tf.logging.set_verbosity(tf.logging.ERROR)
     mnist = mnist_data.read_data_sets("data", one_hot=True, reshape=False, validation_size=0)
