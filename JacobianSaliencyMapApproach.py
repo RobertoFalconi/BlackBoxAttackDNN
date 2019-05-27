@@ -6,6 +6,7 @@ from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 CLASSES = 10
 
+#STEP 2 - Architecture selection
 def model(x, logits=False, training=False):
     with tf.variable_scope('conv0'):
         z = tf.layers.conv2d(x, filters=32, kernel_size=[2, 2], padding='same', activation=tf.nn.relu)
@@ -60,6 +61,7 @@ def _jsma_impl(model, x, yind, epochs, eps, clip_min, clip_max, score_fn):
         xadv = tf.stop_gradient(xadv + dx)
         xadv = tf.clip_by_value(xadv, clip_min, clip_max)
         return i+1, xadv
+    #STEP 3 - Labeling
     _, xadv = tf.while_loop(cond, body, (0, tf.identity(x)), back_prop=False, name='_jsma_batch')
     return xadv
 
@@ -108,6 +110,7 @@ def evaluate(sess, ambiente, X_data, y_data, batch_size=128):
     print(' loss: {0:.4f} acc: {1:.4f}'.format(loss, acc))
     return loss, acc
 
+#STEP 4 - Training
 def train(sess, ambiente, X_data, y_data, X_valid=None, y_valid=None, epochs=1, load=False, shuffle=True, batch_size=128, name='model'): 
     if load:
         if not hasattr(ambiente, 'saver'):
@@ -134,6 +137,7 @@ def train(sess, ambiente, X_data, y_data, X_valid=None, y_valid=None, epochs=1, 
         os.makedirs('model', exist_ok=True)
         ambiente.saver.save(sess, 'model/{}'.format(name))
 
+#STEP 5 - Dataset Augmentation
 def make_jsma(sess, ambiente, X_data, epochs=0.2, eps=1.0, batch_size=128):
     print('\nInizio JSMA')
     n_sample = X_data.shape[0]
@@ -149,6 +153,7 @@ def make_jsma(sess, ambiente, X_data, epochs=0.2, eps=1.0, batch_size=128):
     print()
     return X_adv
 
+#STEP 1 - Initial Dataset Collection
 def main():
     old_v = tf.logging.get_verbosity()
     tf.logging.set_verbosity(tf.logging.ERROR)
